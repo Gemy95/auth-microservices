@@ -16,16 +16,10 @@ const SALT_OR_ROUNDS = 10;
 
 @Injectable()
 export class AppService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private authService: AuthService,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>, private authService: AuthService) {}
 
   async registerUser(registerUserDto: RegisterUserDto) {
-    const hashedPassword = await bcrypt.hashSync(
-      registerUserDto.password,
-      SALT_OR_ROUNDS,
-    );
+    const hashedPassword = await bcrypt.hashSync(registerUserDto.password, SALT_OR_ROUNDS);
     const createdUser = new this.userModel({
       ...registerUserDto,
       password: hashedPassword,
@@ -47,10 +41,7 @@ export class AppService {
       throw new RpcException('This account not found');
     }
 
-    const hashedPassword = await bcrypt.hashSync(
-      resetPasswordDto.newPassword,
-      SALT_OR_ROUNDS,
-    );
+    const hashedPassword = await bcrypt.hashSync(resetPasswordDto.newPassword, SALT_OR_ROUNDS);
 
     await this.userModel.updateOne(
       {
@@ -79,10 +70,7 @@ export class AppService {
       throw new RpcException('Please Activate your account');
     }
 
-    const isMatch = await bcrypt.compareSync(
-      loginUserDto.password,
-      currentUser.password,
-    );
+    const isMatch = await bcrypt.compareSync(loginUserDto.password, currentUser.password);
 
     if (!isMatch) {
       throw new RpcException('Incorrect Password');
@@ -92,10 +80,7 @@ export class AppService {
 
     delete currentUser.activationCode;
 
-    const { accessToken, refreshToken } = await this.authService.generateTokens(
-      AuthUserType.Client,
-      currentUser,
-    );
+    const { accessToken, refreshToken } = await this.authService.generateTokens(AuthUserType.Client, currentUser);
 
     return {
       ...currentUser,
